@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Draggable Image</title>
+    <style>
+        #draggableImage {
+            width: 100px;
+            height: 100px;
+            position: absolute;
+        }
+        #imageContainer {
+            position: relative;
+            width: 100%;
+            height: 500px;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+    <input type="file" id="fileInput" accept="image/*">
+    <button onclick="insertImage()">Insert Image</button>
+    <div id="imageContainer"></div>
+
+    <script>
+        function insertImage() {
+            const fileInput = document.getElementById('fileInput');
+            const imageContainer = document.getElementById('imageContainer');
+
+            if (fileInput.files && fileInput.files[0]) {
+                const reader = new FileReader();
+
+                reader.onload = function (e) {
+                    const img = document.createElement('img');
+                    img.id = 'draggableImage';
+                    img.src = e.target.result;
+                    img.draggable = true;
+                    img.style.left = '0px';
+                    img.style.top = '0px';
+                    img.ondragstart = dragStart;
+                    imageContainer.innerHTML = '';
+                    imageContainer.appendChild(img);
+                };
+
+                reader.readAsDataURL(fileInput.files[0]);
+            }
+        }
+
+        function dragStart(event) {
+            event.dataTransfer.setData('text/plain', null);
+            const style = window.getComputedStyle(event.target, null);
+            event.dataTransfer.setData("text/plain",
+                (parseInt(style.getPropertyValue("left"), 10) - event.clientX) + ',' + (parseInt(style.getPropertyValue("top"), 10) - event.clientY));
+        }
+
+        document.addEventListener('dragover', function (event) {
+            event.preventDefault();
+        });
+
+        document.addEventListener('drop', function (event) {
+            event.preventDefault();
+            const offset = event.dataTransfer.getData("text/plain").split(',');
+            const img = document.getElementById('draggableImage');
+            if (img) {
+                img.style.left = (event.clientX + parseInt(offset[0], 10)) + 'px';
+                img.style.top = (event.clientY + parseInt(offset[1], 10)) + 'px';
+            }
+        });
+    </script>
+</body>
+</html>
